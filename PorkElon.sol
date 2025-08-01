@@ -1,0 +1,16 @@
+- Inherits from ERC20 & Ownable
+- On every transfer:
+   - If buy/sell:
+     - Take 5% fee:
+        - 2% to marketing wallet
+        - 2% auto-liquify
+        - 1% burned
+   - Check:
+     - Max transaction amount (<=1% total supply)
+     - Max wallet size (<=2% total supply)
+     - Cooldown (prevent rapid buys per wallet)
+- Admin Functions:
+   - Update fees & wallets
+   - Enable trading
+   - Manual burn
+   - Renounce ownership
