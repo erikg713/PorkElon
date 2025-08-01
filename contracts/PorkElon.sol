@@ -91,3 +91,77 @@ contract PorkElon is ERC20, Ownable {
         _burn(msg.sender, amount);
     }
 }
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract PorkElon is ERC20, Ownable {
+    uint256 public maxTxAmount;
+    uint256 public maxWalletSize;
+    uint256 public cooldownTime;
+    address public marketingWallet;
+
+    mapping(address => bool) public isExcludedFromFees;
+    mapping(address => uint256) private _lastTransferTimestamp;
+
+    constructor(address _marketingWallet) ERC20("PorkElon", "PORKELON") {
+        uint256 totalSupply = 69_000_000_000 * 10 ** decimals();
+        _mint(msg.sender, totalSupply);
+
+        maxTxAmount = totalSupply / 100;       // 1% max tx
+        maxWalletSize = totalSupply * 2 / 100; // 2% max wallet
+        cooldownTime = 30;                     // 30 seconds cooldown
+
+        marketingWallet = _marketingWallet;
+
+        isExcludedFromFees[msg.sender] = true;
+        isExcludedFromFees[address(this)] = true;
+        isExcludedFromFees[marketingWallet] = true;
+    }
+
+    function _transfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override {
+        if (!isExcludedFromFees[from] && !isExcludedFromFees[to]) {
+            require(amount <= maxTxAmount, "Transfer exceeds max tx limit");
+
+            if (to != address(this) && to != marketingWallet) {
+                require(balanceOf(to) + amount <= maxWalletSize, "Recipient exceeds max wallet limit");
+
+                uint256 lastTx = _lastTransferTimestamp[from];
+                require(block.timestamp >= lastTx + cooldownTime, "Cooldown: Wait before next transfer");
+                _lastTransferTimestamp[from] = block.timestamp;
+            }
+
+            // Placeholder for fees if desired
+            // uint256 feeAmount = amount * marketingFee / 100;
+            // super._transfer(from, marketingWallet, feeAmount);
+            // amount -= feeAmount;
+        }
+
+        super._transfer(from, to, amount);
+    }
+
+    function updateLimits(
+        uint256 _maxTxPercent,
+        uint256 _maxWalletPercent,
+        uint256 _cooldownSeconds
+    ) external onlyOwner {
+        uint256 total = totalSupply();
+        maxTxAmount = total * _maxTxPercent / 100;
+        maxWalletSize = total * _maxWalletPercent / 100;
+        cooldownTime = _cooldownSeconds;
+    }
+
+    function excludeFromFees(address account, bool excluded) external onlyOwner {
+        isExcludedFromFees[account] = excluded;
+    }
+
+    function updateMarketingWallet(address newWallet) external onlyOwner {
+        marketingWallet = newWallet;
+    }
+}
