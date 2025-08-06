@@ -1,5 +1,3 @@
-🧾 Contract File: PorkElon.sol
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -18,8 +16,8 @@ contract PorkElon is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     uint256 public maxWalletSize;
     uint256 public cooldownTime;
 
-    uint256 public marketingFee = 3; // 3%
-    uint256 public autoBurnFee = 1; // 1%
+    uint256 public marketingFee = 0; // Optional
+    uint256 public autoBurnFee = 2;  // 🔥 2% default
     bool public autoBurnEnabled = true;
     bool public swapEnabled = true;
     bool public inSwap;
@@ -42,7 +40,9 @@ contract PorkElon is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         inSwap = false;
     }
 
-    constructor(address _marketingWallet, address _router, address _teamWallet) ERC20("PorkElon", "PORKELON") {
+    constructor(address _marketingWallet, address _router, address _teamWallet)
+        ERC20("PorkElon", "PORKELON")
+    {
         uint256 total = 69_000_000_000 * 10 ** decimals();
         _mint(msg.sender, total);
 
@@ -122,11 +122,11 @@ contract PorkElon is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
                 payable(marketingWallet).sendValue(eth);
             }
         } catch {
-            // swallow
+            // no revert
         }
     }
 
-    // ===================== 🔧 ADMIN FUNCTIONS =====================
+    // 🔧 Admin Functions
 
     function setFees(uint256 _marketing, uint256 _burn) external onlyOwner {
         require(_marketing + _burn <= 10, "Total fee too high");
@@ -170,6 +170,11 @@ contract PorkElon is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 
     function setTeamWallet(address addr) external onlyOwner {
         teamWallet = addr;
+    }
+
+    // ✅ Mintable Function (Owner Only)
+    function mint(address to, uint256 amount) external onlyOwner {
+        _mint(to, amount);
     }
 
     receive() external payable {}
