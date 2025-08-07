@@ -44,3 +44,39 @@ export const useTokenStats = () => {
   return stats;
 };
 
+// porkelon-frontend/src/hooks/usePorkElon.js
+import { useEffect, useState } from 'react';
+import { ethers } from 'ethers';
+import abi from '../abi/PorkElon.json';
+
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
+const RPC_URL = import.meta.env.VITE_RPC_URL;
+
+export function useTokenStats() {
+  const [totalSupply, setTotalSupply] = useState("Loading...");
+  const [burned, setBurned] = useState("Loading...");
+  const [unlockTime, setUnlockTime] = useState("Loading...");
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
+
+        const total = await contract.totalSupply();
+        const burnedAmount = await contract.balanceOf("0x0000000000000000000000000000000000000000");
+        const unlock = await contract.vestingUnlockTime();
+
+        setTotalSupply(ethers.utils.formatUnits(total, 18));
+        setBurned(ethers.utils.formatUnits(burnedAmount, 18));
+        setUnlockTime(new Date(unlock.toNumber() * 1000).toLocaleString());
+      } catch (error) {
+        console.error("Failed to fetch token stats:", error);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
+  return { totalSupply, burned, unlockTime };
+}
