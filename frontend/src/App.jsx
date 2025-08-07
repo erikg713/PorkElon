@@ -4,6 +4,7 @@ import { config } from './config';
 
 import WalletConnect from './components/WalletConnect';
 import TokenStats from './components/TokenStats';
+import SendPorkElon from './components/SendPorkElon'; // <-- Added this line
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <h1 className="text-4xl font-bold mb-6">🐷 PorkElon Token Dashboard</h1>
           <WalletConnect />
           <TokenStats />
+          <SendPorkElon /> {/* <-- Added this line */}
         </div>
       </div>
     </WagmiConfig>
