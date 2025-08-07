@@ -1,10 +1,6 @@
-export const PORKELON_CONTRACT_ADDRESS = '0x';
+// src/constants/contracts.js
+export const PORKELON_CONTRACT_ADDRESS = '0xYourActualPorkElonContractAddressHere';
 
-// Replace with your actual PorkElon Token Contract ABI
-// This ABI should include functions for:
-// - totalSupply()
-// - burnedSupply() (or similar function name for burned tokens)
-// - unlockTime() (or similar function name for token unlock timestamp)
 export const PORKELON_CONTRACT_ABI =,
     "name": "totalSupply",
     "outputs":,
@@ -13,14 +9,14 @@ export const PORKELON_CONTRACT_ABI =,
   },
   {
     "inputs":,
-    "name": "burnedSupply", // Assuming your contract has a function to get burned supply
+    "name": "burnedSupply",
     "outputs":,
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs":,
-    "name": "unlockTime", // Assuming your contract has a function for unlock time (Unix timestamp)
+    "name": "unlockTime",
     "outputs":,
     "stateMutability": "view",
     "type": "function"
