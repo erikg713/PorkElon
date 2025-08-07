@@ -1,82 +1,56 @@
-import { useState, useEffect } from 'react';
-import { usePublicClient } from 'wagmi';
+import { useContractRead } from 'wagmi';
+import { PORKELON_CONTRACT_ADDRESS, PORKELON_CONTRACT_ABI } from '../constants/contracts';
 
 export const useTokenStats = () => {
-  const [stats, setStats] = useState({
-    totalSupply: 'Loading...',
-    burned: 'Loading...',
-    unlockTime: 'Loading...',
+  // Fetch Total Supply
+  const { data: totalSupplyData, isLoading: isTotalSupplyLoading, isError: isTotalSupplyError } = useContractRead({
+    address: PORKELON_CONTRACT_ADDRESS,
+    abi: PORKELON_CONTRACT_ABI,
+    functionName: 'totalSupply',
+    watch: true, // Automatically refetch on new blocks
   });
 
-  const publicClient = usePublicClient();
+  // Fetch Burned Supply (assuming a function named 'burnedSupply' in your contract)
+  const { data: burnedData, isLoading: isBurnedLoading, isError: isBurnedError } = useContractRead({
+    address: PORKELON_CONTRACT_ADDRESS,
+    abi: PORKELON_CONTRACT_ABI,
+    functionName: 'burnedSupply', // Make sure this matches your contract's function name
+    watch: true,
+  });
 
-  useEffect(() => {
-    // This is where you would call the smart contract to get the token data.
-    // This is just a placeholder example.
+  // Fetch Unlock Time (assuming a function named 'unlockTime' in your contract that returns a Unix timestamp)
+  const { data: unlockTimeData, isLoading: isUnlockTimeLoading, isError: isUnlockTimeError } = useContractRead({
+    address: PORKELON_CONTRACT_ADDRESS,
+    abi: PORKELON_CONTRACT_ABI,
+    functionName: 'unlockTime', // Make sure this matches your contract's function name
+    watch: true,
+  });
 
-    const fetchTokenData = async () => {
-      try {
-        // You would replace this with actual contract calls using 'publicClient'
-        const totalSupply = '1,000,000,000,000';
-        const burned = '500,000,000,000';
-        const unlockTimestamp = 1735689600; // Example Unix timestamp for unlock
+  // Format the data for display
+  const totalSupply = isTotalSupplyLoading
+   ? 'Loading...'
+    : isTotalSupplyError
+     ? 'Error'
+      : totalSupplyData? totalSupplyData.toString() : 'N/A'; // Convert BigInt to string
 
-        const unlockDate = new Date(unlockTimestamp * 1000).toLocaleString();
+  const burned = isBurnedLoading
+   ? 'Loading...'
+    : isBurnedError
+     ? 'Error'
+      : burnedData? burnedData.toString() : 'N/A'; // Convert BigInt to string
 
-        setStats({
-          totalSupply,
-          burned,
-          unlockTime: unlockDate,
-        });
-      } catch (error) {
-        console.error('Failed to fetch token stats:', error);
-        setStats({
-          totalSupply: 'Error',
-          burned: 'Error',
-          unlockTime: 'Error',
-        });
-      }
-    };
+  // Format unlock time from a Unix timestamp to a human-readable date
+  const formattedUnlockTime = isUnlockTimeLoading
+   ? 'Loading...'
+    : isUnlockTimeError
+     ? 'Error'
+      : unlockTimeData
+       ? new Date(Number(unlockTimeData) * 1000).toLocaleString() // Convert BigInt timestamp to number, then to date
+        : 'N/A';
 
-    fetchTokenData();
-  }, [publicClient]);
-
-  return stats;
+  return {
+    totalSupply,
+    burned,
+    unlockTime: formattedUnlockTime,
+  };
 };
-
-// porkelon-frontend/src/hooks/usePorkElon.js
-import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
-import abi from '../abi/PorkElon.json';
-
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
-const RPC_URL = import.meta.env.VITE_RPC_URL;
-
-export function useTokenStats() {
-  const [totalSupply, setTotalSupply] = useState("Loading...");
-  const [burned, setBurned] = useState("Loading...");
-  const [unlockTime, setUnlockTime] = useState("Loading...");
-
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
-
-        const total = await contract.totalSupply();
-        const burnedAmount = await contract.balanceOf("0x0000000000000000000000000000000000000000");
-        const unlock = await contract.vestingUnlockTime();
-
-        setTotalSupply(ethers.utils.formatUnits(total, 18));
-        setBurned(ethers.utils.formatUnits(burnedAmount, 18));
-        setUnlockTime(new Date(unlock.toNumber() * 1000).toLocaleString());
-      } catch (error) {
-        console.error("Failed to fetch token stats:", error);
-      }
-    }
-
-    fetchStats();
-  }, []);
-
-  return { totalSupply, burned, unlockTime };
-}
