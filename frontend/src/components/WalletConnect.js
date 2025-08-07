@@ -15,3 +15,4 @@ export default function WalletConnect() {
 
   return <button onClick={() => connect()} className="bg-green-600 px-4 py-2 rounded">Connect Wallet</button>;
 }
+
